@@ -32,6 +32,13 @@ static void context_builtin(Context *context)
 	map_put(context->map, "/", value_new_function(forsh_slash));
 }
 
+static void value_free_ignoring_symbols(Value *value)
+{
+	if (value->type != TYPE_SYMBOL) {
+		value_free(value);
+	}
+}
+
 Context *context_new(void)
 {
 	Context *context;
@@ -39,7 +46,7 @@ Context *context_new(void)
 	if (NULL == context) {
 		goto err_malloc;
 	}
-	context->stack = stack_new((FreeFunc *) value_free);
+	context->stack = stack_new((FreeFunc *) value_free_ignoring_symbols);
 	if (NULL == context->stack) {
 		goto err_malloc_stack;
 	}
@@ -48,6 +55,7 @@ Context *context_new(void)
 		goto err_malloc_map;
 	}
 	context_builtin(context);
+	context->defining_variable = FALSE;
 	return context;
 err_malloc_map:
 	free(context->stack);
@@ -77,27 +85,27 @@ Value *context_resolve(Context const *context, char const *key)
 	return map_get(context->map, key);
 }
 
-void context_interpret(Context *context, const char *str)
+Error *context_interpret(Context *context, const char *str)
 {
 	Value *value;
-	if (str_is_integer(str)) {
+	ForshFunc *func;
+	if (context->defining_variable) {  // 変数定義
+		context->defining_variable = FALSE;
+		value = value_new_symbol(str);
+		if (NULL == value) {  // エラー (変数名不正など)
+			return error_new(IllegalVariableError, NULL);
+		}
+		map_put(context->map, value_symbol_name(value), value);
+	} else if (str_is_integer(str)) {  // 整数
 		value = value_new_integer_str(str);
 		stack_push(context->stack, value);
-	} else if (NULL != (value = context_resolve(context, str))) {
+	} else if (0 == strcmp(str, "VARIABLE")) {  // 変数定義の開始
+		context->defining_variable = TRUE;
+	} else if (NULL != (value = context_resolve(context, str))) {  // シンボル
 		switch (value->type) {
 		case TYPE_FUNCTION:
-		{
-			ForshFunc *func;
-			Error *error;
 			func = value_function(value);
-			error = func(context->stack);
-			if (NULL != error) {
-				char buf[1024];
-				fprintf(stderr, "%s\n", error_str(error, buf, sizeof(buf)));
-				error_free(error);
-			}
-			break;
-		}
+			return func(context->stack);
 		default:
 			stack_push(context->stack, value);
 			break;
@@ -105,6 +113,7 @@ void context_interpret(Context *context, const char *str)
 	} else {
 		fprintf(stderr, "Failed to interpret: %s\n", str);
 	}
+	return NULL;
 }
 
 static bool str_is_integer(char const *str)

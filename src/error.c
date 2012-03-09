@@ -44,10 +44,11 @@ struct _ErrorString {
 	char *str;
 };
 
-ErrorString error_strings[] = {
+const static ErrorString error_strings[] = {
 	{ EmptyStackError, "EmptyStackError" },
 	{ IllegalTypeError, "IllegalTypeError" },
 	{ DividedByZeroError, "DividedByZeroError" },
+	{ IllegalVariableError, "IllegalVariableError" },
 };
 
 char *error_str(Error const *error, char *buffer, size_t size)

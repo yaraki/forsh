@@ -54,6 +54,7 @@ typedef enum _Type Type;
 enum _Type {
 	TYPE_INTEGER,   /* 整数 */
 	TYPE_FUNCTION,  /* 関数 */
+	TYPE_SYMBOL,    /* シンボル */
 };
 
 /** 値 */
@@ -68,15 +69,16 @@ typedef struct _Context Context;
 struct _Context {
 	Stack *stack;  /* スタック */
 	Map *map;      /* シンボル・テーブル */
+	bool defining_variable;  /* 変数宣言待ちか */
 };
 
 /** エラー種別 */
 typedef enum _ErrorType ErrorType;
 enum _ErrorType {
-
-	EmptyStackError,     /* スタックが空である */
-	IllegalTypeError,    /* 型が不正である */
-	DividedByZeroError,  /* ゼロによる割り算 */
+	EmptyStackError,       /* スタックが空である */
+	IllegalTypeError,      /* 型が不正である */
+	DividedByZeroError,    /* ゼロによる割り算 */
+	IllegalVariableError,  /* 変数定義のエラー */
 };
 
 /** エラー */
@@ -202,6 +204,19 @@ Value *value_new_function(ForshFunc *func);
  */
 ForshFunc *value_function(Value const *value);
 
+/**
+ * Value の新しいインスタンスをシンボルとして生成する。生成に失敗した場
+ * 合は NULL が返される。
+ * \name シンボルの名前
+ */
+Value *value_new_symbol(char const *name);
+
+/**
+ * シンボルとして生成された Value の名前を取得する。
+ * \value シンボル
+ */
+char const *value_symbol_name(Value const *value);
+
 /* builtin.c */
 /** '+' を実装する */
 Error *forsh_plus(Stack *stack);
@@ -235,7 +250,7 @@ void context_describe(Context const *context);
  * \context 文脈
  * \str 解釈するトークン文字列
  */
-void context_interpret(Context *context, const char *str);
+Error *context_interpret(Context *context, const char *str);
 
 /* error.c */
 /**

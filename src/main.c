@@ -13,6 +13,7 @@ static void start_interpreter()
 	char *tofree;
 	char *token;
 	Context *context;
+	Error *error;
 	context = context_new();
 	while (TRUE) {
 		tofree = buffer = (char *) malloc(BUFFER_SIZE);
@@ -27,7 +28,12 @@ static void start_interpreter()
 			if ('\0' == *token) {
 				break;
 			}
-			context_interpret(context, token);
+			error = context_interpret(context, token);
+			if (NULL != error) {
+				char buf[1024];
+				fprintf(stderr, "%s\n", error_str(error, buf, sizeof(buf)));
+				error_free(error);
+			}
 		}
 		context_describe(context);  /* debug */
 		free(tofree);
