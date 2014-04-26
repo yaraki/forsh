@@ -10,12 +10,12 @@ static void start_interpreter()
 {
 	static size_t const BUFFER_SIZE = 1024;
 	char *buffer;
-	char *tofree;
-	char *token;
 	Context *context;
 	Error *error;
 	context = context_new();
 	while (TRUE) {
+		char *tofree;
+		char *token;
 		tofree = buffer = (char *) malloc(BUFFER_SIZE);
 		if (NULL == buffer) { 
 			break;
@@ -41,7 +41,7 @@ static void start_interpreter()
 	context_free(context);
 }
 
-int main(int argc, char **argv)
+int main()
 {
 	start_interpreter();
 	return 0;

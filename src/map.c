@@ -74,7 +74,7 @@ FreeFunc *map_value_free(Map const *map)
 
 void map_free(Map *map)
 {
-	int i;
+	size_t i;
 	FreeFunc *value_free;
 	value_free = map_value_free(map);
 	for (i = 0; i < map->len; ++i) {
@@ -92,11 +92,11 @@ static bool map_realloc(Map *map)
 
 bool map_put(Map *map, char const *key, void *value)
 {
-	int i;
-	Pair *pair;
+	size_t i;
 	FreeFunc *value_free;
 	/* すでにキーが存在する場合は上書きする */
 	for (i = 0; i < map->len; ++i) {
+		Pair *pair;
 		pair = map->pairs[i];
 		if (0 == strcmp(pair->key, key)) {
 			value_free = map_value_free(map);
@@ -118,9 +118,9 @@ bool map_put(Map *map, char const *key, void *value)
 
 void *map_get(Map const *map, char const *key)
 {
-	int i;
-	Pair *pair;
+	size_t i;
 	for (i = 0; i < map->len; ++i) {
+		Pair *pair;
 		pair = map->pairs[i];
 		if (0 == strcmp(pair->key, key)) {
 			return pair->value;

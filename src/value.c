@@ -12,13 +12,13 @@ void value_str(Value const *value, char *buf, size_t size)
 {
 	switch (value->type) {
 	case TYPE_INTEGER:
-		snprintf(buf, size, "%d", (int) value->data);
+		snprintf(buf, size, "%d", (int) value->data.i);
 		break;
 	case TYPE_FUNCTION:
-		snprintf(buf, size, "FUNC(%d)", (int) value->data);
+		snprintf(buf, size, "FUNC(%d)", (int) value->data.p);
 		break;
 	case TYPE_SYMBOL:
-		snprintf(buf, size, "%s", (char *) value->data);
+		snprintf(buf, size, "%s", (char *) value->data.p);
 		break;
 	}
 }
@@ -27,7 +27,7 @@ void value_free(Value *value)
 {
 	if (NULL == value) { return; }
 	if (value->type == TYPE_SYMBOL) {
-		free(value->data);
+		free(value->data.p);
 	}
 	free(value);
 }
@@ -43,7 +43,7 @@ Value *value_new_integer(int i)
 		return NULL;
 	}
 	value->type = TYPE_INTEGER;
-	value->data = (void *) i;
+	value->data.i = i;
 	return value;
 }
 
@@ -54,7 +54,7 @@ Value *value_new_integer_str(char const *str)
 
 int value_integer_value(Value *integer)
 {
-	return (int) integer->data;
+	return integer->data.i;
 }
 
 // ==================================================
@@ -68,13 +68,13 @@ Value *value_new_function(ForshFunc *func)
 		return NULL;
 	}
 	value->type = TYPE_FUNCTION;
-	value->data = func;
+	value->data.p = func;
 	return value;
 }
 
 ForshFunc *value_function(Value const *value)
 {
-	return value->data;
+	return value->data.p;
 }
 
 // ==================================================
@@ -91,8 +91,8 @@ Value *value_new_symbol(char const *name)
 		return NULL;
 	}
 	value->type = TYPE_SYMBOL;
-	value->data = strdup(name);
-	if (NULL == value->data) {
+	value->data.p = strdup(name);
+	if (NULL == value->data.p) {
 		goto err_strdup;
 	}
 	return value;
@@ -103,7 +103,7 @@ err_strdup:
 
 char const *value_symbol_name(Value const *value)
 {
-	return (char const *) value->data;
+	return value->data.p;
 }
 
 static bool is_valid_symbol(char const *name)

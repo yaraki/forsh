@@ -57,11 +57,17 @@ enum _Type {
 	TYPE_SYMBOL,    /* シンボル */
 };
 
+typedef union _Data Data;
+union _Data {
+	void *p;
+	int i;
+};
+
 /** 値 */
 typedef struct _Value Value;
 struct _Value {
 	Type type;   /* このインスタンスの型 */
-	void *data;  /* データ */
+	Data data;  /* データ */
 };
 
 /** 文脈 */

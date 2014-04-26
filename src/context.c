@@ -74,7 +74,6 @@ void context_free(Context *context)
 
 void context_describe(Context const *context)
 {
-	char buf[1024];
 	putchar('#');
 	stack_each(context->stack, (void (*)(void *)) print_value);
 	putchar('\n');
@@ -88,7 +87,6 @@ Value *context_resolve(Context const *context, char const *key)
 Error *context_interpret(Context *context, const char *str)
 {
 	Value *value;
-	ForshFunc *func;
 	if (context->defining_variable) {  // 変数定義
 		context->defining_variable = FALSE;
 		value = value_new_symbol(str);
@@ -102,6 +100,7 @@ Error *context_interpret(Context *context, const char *str)
 	} else if (0 == strcmp(str, "VARIABLE")) {  // 変数定義の開始
 		context->defining_variable = TRUE;
 	} else if (NULL != (value = context_resolve(context, str))) {  // シンボル
+		ForshFunc *func;
 		switch (value->type) {
 		case TYPE_FUNCTION:
 			func = value_function(value);
